@@ -1,0 +1,25 @@
+{
+  "name": "pollachi-coconut-data-viz",
+  "version": "1.0.0",
+  "description": "Dynamic Node.js Web Application for Pollachi Coconut Data Visualization with Real-Time Dataset Updates and User Authentication",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "serve": "node server.js"
+  },
+  "keywords": [
+    "data-visualization",
+    "nodejs",
+    "pollachi",
+    "coconut",
+    "dynamic-dashboard",
+    "mini-project"
+  ],
+  "author": "Mini Project Student",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
+  }
+}
