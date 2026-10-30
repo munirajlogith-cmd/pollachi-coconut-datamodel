@@ -16,39 +16,27 @@
     <div class="login-card">
       <div class="login-brand">
         <div class="login-logo">🥥</div>
-        <h2 class="login-title">Portal Authentication</h2>
-        <p class="login-subtitle">Pollachi Coconut DataSphere & Power BI Analytics</p>
+        <h2 class="login-title">Student Login</h2>
+        <p class="login-subtitle">Pollachi Coconut Data Visualization Portal</p>
       </div>
 
       <form id="loginForm">
         <div class="login-form-group">
-          <label class="login-label" for="loginUserInput">User ID / Username</label>
-          <input type="text" id="loginUserInput" class="login-input" value="admin" placeholder="admin or student" required autocomplete="username">
+          <label class="login-label" for="loginUserInput">Student ID</label>
+          <input type="text" id="loginUserInput" class="login-input" value="student" placeholder="Enter Student ID" required autocomplete="username">
         </div>
 
         <div class="login-form-group">
           <label class="login-label" for="loginPassInput">Password</label>
-          <input type="password" id="loginPassInput" class="login-input" value="admin123" placeholder="••••••••" required autocomplete="current-password">
+          <input type="password" id="loginPassInput" class="login-input" value="student123" placeholder="••••••••" required autocomplete="current-password">
         </div>
 
-        <button type="submit" class="login-btn-submit">Sign In to Dashboard</button>
+        <button type="submit" class="login-btn-submit">Sign In as Student</button>
         <div id="loginErrorMsg" class="login-error-msg"></div>
       </form>
 
-      <div class="login-credentials-hint" style="text-align:left;background:var(--bg-card);padding:10px 14px;border-radius:6px;margin-top:12px;border:1px solid var(--border-color);">
-        <div style="font-size:11px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">ROLE-BASED DEMO CREDENTIALS:</div>
-        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;margin-bottom:2px;">
-          <span>👑 <strong>Admin</strong> (Full Edit & Add 2026):</span>
-          <code>admin / admin123</code>
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;margin-bottom:2px;">
-          <span>🎓 <strong>Student</strong> (Read-only Analytics):</span>
-          <code>student / student123</code>
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;">
-          <span>👨‍🏫 <strong>Faculty</strong> (Evaluator Access):</span>
-          <code>faculty / faculty123</code>
-        </div>
+      <div class="login-credentials-hint" style="text-align:center;">
+        <span style="font-size:11.5px;color:var(--text-muted);">Default Student Login: <strong>student</strong> / <strong>student123</strong></span>
       </div>
     </div>
   </div>
@@ -112,30 +100,23 @@
   <div class="app-container">
     <!-- Left Navigation Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div>
-          <span class="brand-badge">POLLACHI DIVISION</span>
-          <h1 class="brand-title">🥥 Pollachi Coconut</h1>
-          <p class="brand-subtitle">Coimbatore District, Tamil Nadu</p>
-        </div>
-        <button id="sidebarCloseBtn" class="btn btn-outline sidebar-close-btn" style="padding:4px 8px;font-size:12px;cursor:pointer;" title="Collapse Sidebar">✕</button>
+      <div class="sidebar-header">
+        <span class="brand-badge">POLLACHI DIVISION</span>
+        <h1 class="brand-title">🥥 Pollachi Coconut</h1>
+        <p class="brand-subtitle">Coimbatore District, Tamil Nadu</p>
       </div>
 
-      <!-- Timeline Range (From & To Year Selectors) -->
+      <!-- Timeline Range Slider (2005 - 2025) -->
       <div class="sidebar-filter-box">
         <div class="filter-heading">
           <span>TIMELINE RANGE</span>
           <span id="yearDisplay" class="filter-current-val">2005 - 2025</span>
         </div>
-        <div class="range-grid">
-          <div class="range-col">
-            <label for="fromYearSelect" class="range-label">FROM YEAR</label>
-            <select id="fromYearSelect" class="range-select" aria-label="From Year"></select>
-          </div>
-          <div class="range-col">
-            <label for="toYearSelect" class="range-label">TO YEAR</label>
-            <select id="toYearSelect" class="range-select" aria-label="To Year"></select>
-          </div>
+        <input type="range" id="yearSlider" class="filter-range" min="2005" max="2025" step="1" value="2025">
+        <div class="filter-ticks">
+          <span>2005</span>
+          <span>2015</span>
+          <span>2025</span>
         </div>
       </div>
 
@@ -170,10 +151,6 @@
           <span class="nav-icon">📋</span>
           <span>Statistical Records</span>
         </a>
-        <a href="#powerbi" class="nav-link" data-tab="powerbi" style="border-left: 3px solid #f2c811;">
-          <span class="nav-icon">📊</span>
-          <span style="font-weight: 700; color: #f2c811;">Power BI Dashboard</span>
-        </a>
       </nav>
 
       <!-- Sidebar Footer -->
@@ -194,14 +171,9 @@
     <main class="main-wrapper">
       <!-- Topbar Header -->
       <header class="topbar">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <button id="sidebarToggleBtn" class="btn btn-outline" style="padding:6px 11px;font-size:16px;line-height:1;cursor:pointer;" title="Toggle Sidebar (Expand/Collapse)">
-            ☰
-          </button>
-          <div>
-            <h2 id="topbarTitle" class="topbar-title">Coconut Production & Growth Overview</h2>
-            <p id="topbarSubtitle" class="topbar-subtitle">20-year agro-economic indicators in Pollachi, Coimbatore District (2005 - 2025)</p>
-          </div>
+        <div>
+          <h2 id="topbarTitle" class="topbar-title">Coconut Production & Growth Overview</h2>
+          <p id="topbarSubtitle" class="topbar-subtitle">20-year agro-economic indicators in Pollachi, Coimbatore District (2005 - 2025)</p>
         </div>
 
         <div class="topbar-actions">
@@ -538,104 +510,6 @@
                   <!-- Populated dynamically by JS -->
                 </tbody>
               </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- 8. POWER BI INTEGRATED DASHBOARD TAB (UNIVERSITY REQUIREMENT) -->
-        <section id="tab-powerbi" class="tab-pane">
-          <div class="welcome-banner" style="background: linear-scale(135deg, rgba(242,200,17,0.15), rgba(21,128,61,0.1)); border: 1px solid rgba(242,200,17,0.4);">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
-              <div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-                  <span style="font-size:24px;">📊</span>
-                  <h3 style="font-size:20px;font-weight:800;color:var(--text-primary);margin:0;">Microsoft Power BI Embedded Analytics</h3>
-                  <span style="background:#f2c811;color:#000;font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;">INTEGRATED</span>
-                </div>
-                <p class="welcome-desc" style="margin:0;">Interactive enterprise business intelligence dashboard synthesized from the 21-year Pollachi Coconut Dataset.</p>
-              </div>
-              <div style="display:flex;gap:8px;">
-                <a href="data/pollachi_datasets.csv" download="pollachi_datasets.csv" class="btn btn-outline" style="background:var(--bg-card);border-color:#f2c811;color:var(--text-primary);">
-                  📥 Download Power BI Dataset (.CSV)
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Power BI Integration Container -->
-          <div class="chart-card" style="margin-top:20px;padding:0;overflow:hidden;border:1px solid rgba(242,200,17,0.3);">
-            <div style="background:var(--bg-card);padding:14px 20px;border-bottom:1px solid var(--border-color);display:flex;justify-content:space-between;align-items:center;">
-              <div style="display:flex;align-items:center;gap:10px;">
-                <span style="width:12px;height:12px;background:#22c55e;border-radius:50%;display:inline-block;"></span>
-                <strong style="font-size:14px;color:var(--text-primary);">Power BI Report Workspace: Pollachi_Coconut_Analytics.pbix</strong>
-              </div>
-              <div style="font-size:12px;color:var(--text-muted);">
-                Data Model: <strong>8 Attributes</strong> | Total Records: <strong>21 Years</strong> | Real-Time Filter Active
-              </div>
-            </div>
-
-            <!-- Integrated Dashboard Frame & Interactive View -->
-            <div style="padding:20px;background:var(--bg-primary);">
-              <!-- Power BI Interactive Visuals Layout -->
-              <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;margin-bottom:20px;">
-                <!-- KPI Card 1 -->
-                <div style="background:var(--bg-card);padding:16px;border-radius:8px;border-left:4px solid #f2c811;box-shadow:var(--shadow-sm);">
-                  <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Power BI Metric: Peak Production</div>
-                  <div style="font-size:26px;font-weight:800;color:#f2c811;margin:6px 0;">59.8 Cr Nuts</div>
-                  <div style="font-size:11px;color:var(--text-muted);">Aggregated Gross Production (+84.6% growth)</div>
-                </div>
-                <!-- KPI Card 2 -->
-                <div style="background:var(--bg-card);padding:16px;border-radius:8px;border-left:4px solid #15803d;box-shadow:var(--shadow-sm);">
-                  <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Power BI Metric: Total Plantation Acreage</div>
-                  <div style="font-size:26px;font-weight:800;color:#15803d;margin:6px 0;">46,200 Ha</div>
-                  <div style="font-size:11px;color:var(--text-muted);">Cultivated Grove Area across Pollachi Taluk</div>
-                </div>
-                <!-- KPI Card 3 -->
-                <div style="background:var(--bg-card);padding:16px;border-radius:8px;border-left:4px solid #0284c7;box-shadow:var(--shadow-sm);">
-                  <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;">Power BI Metric: Copra Mandi Valuation</div>
-                  <div style="font-size:26px;font-weight:800;color:#0284c7;margin:6px 0;">₹11,850/Qtl</div>
-                  <div style="font-size:11px;color:var(--text-muted);">Wholesale Realization (Pollachi RMC auction)</div>
-                </div>
-              </div>
-
-              <!-- Power BI Visual Embed Canvas -->
-              <div style="background:var(--bg-card);border:2px dashed rgba(242,200,17,0.5);border-radius:8px;padding:30px 20px;text-align:center;">
-                <div style="max-width:650px;margin:0 auto;">
-                  <div style="font-size:48px;margin-bottom:12px;">📊</div>
-                  <h4 style="font-size:18px;font-weight:800;color:var(--text-primary);margin-bottom:8px;">Microsoft Power BI Report Integration Active</h4>
-                  <p style="font-size:13px;color:var(--text-muted);line-height:1.6;margin-bottom:18px;">
-                    This application synchronizes its dataset (<code>data/pollachi_datasets.csv</code>) with Microsoft Power BI Desktop. 
-                    Interactive DAX measures (Total Yield, Copra Mandi CAGR, and Drip Fertigation Efficiency) are modeled and embedded into this portal.
-                  </p>
-                  <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;">
-                    <a href="data/pollachi_datasets.csv" download class="btn btn-primary" style="background:#f2c811;color:#000;border:none;font-weight:700;">
-                      📥 Download Power BI Data Source (CSV)
-                    </a>
-                    <button class="btn btn-outline" onclick="window.open('https://app.powerbi.com', '_blank')">
-                      🔗 Launch Power BI Service (Web)
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Power BI DAX & Data Model Schema -->
-              <div style="margin-top:20px;background:var(--bg-card);padding:18px;border-radius:8px;border:1px solid var(--border-color);">
-                <h5 style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:10px;">Power BI Data Modeling & DAX Calculation Measures:</h5>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:12px;font-size:12px;">
-                  <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border-color);">
-                    <strong style="color:#f2c811;">1. Production Growth (DAX):</strong><br>
-                    <code>Yield_CAGR = DIVIDE(MAX('Data'[Production_Cr]) - MIN('Data'[Production_Cr]), MIN('Data'[Production_Cr]))</code>
-                  </div>
-                  <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border-color);">
-                    <strong style="color:#15803d;">2. Mandi Price Realization (DAX):</strong><br>
-                    <code>Avg_Copra_Price = AVERAGE('Data'[Copra_Price_Qtl])</code>
-                  </div>
-                  <div style="background:var(--bg-primary);padding:10px;border-radius:6px;border:1px solid var(--border-color);">
-                    <strong style="color:#0284c7;">3. Water Savings Index (DAX):</strong><br>
-                    <code>Water_Cons_Mld = SUM('Data'[Area_Ha]) * AVERAGE('Data'[Drip_Pct]) * 0.45</code>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </section>

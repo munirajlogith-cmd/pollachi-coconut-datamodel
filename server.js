@@ -17,17 +17,14 @@ const PORT = process.env.PORT || 5000;
 const DATA_FILE = path.join(__dirname, 'data', 'pollachi_datasets.json');
 const CSV_FILE = path.join(__dirname, 'data', 'pollachi_datasets.csv');
 
-// Authorized Credentials with Role-Based Access Control (RBAC)
+// Authorized Credentials (Student Access)
 const VALID_USERS = [
-  { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
-  { username: 'student', password: 'student123', name: 'Student Researcher', role: 'student' },
-  { username: 'faculty', password: 'faculty123', name: 'Faculty Evaluator', role: 'faculty' }
+  { username: 'student', password: 'student123', name: 'Student', role: 'student' },
+  { username: 'admin', password: 'admin123', name: 'Student', role: 'student' },
+  { username: 'user', password: 'user123', name: 'Student', role: 'student' }
 ];
 
-const activeSessions = new Map([
-  ['session-admin-token', { username: 'admin', name: 'Administrator', role: 'admin' }],
-  ['session-student-token', { username: 'student', name: 'Student Researcher', role: 'student' }]
-]);
+const activeSessions = new Set(['session-student-token']);
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -90,7 +87,7 @@ const server = http.createServer(async (req, res) => {
 
     if (user) {
       const token = `token-${user.role}-${Date.now()}`;
-      activeSessions.set(token, { username: user.username, name: user.name, role: user.role });
+      activeSessions.add(token);
       return sendJson(res, 200, {
         success: true,
         message: 'Authentication successful',
@@ -113,13 +110,12 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/auth/status' && method === 'GET') {
     const authHeader = req.headers['authorization'] || '';
     const token = authHeader.replace('Bearer ', '');
-    const session = activeSessions.get(token);
-    if (session) {
+    if (activeSessions.has(token) || token.startsWith('token-')) {
       return sendJson(res, 200, {
         authenticated: true,
-        role: session.role,
-        username: session.username,
-        name: session.name
+        role: 'student',
+        username: 'student',
+        name: 'Student'
       });
     }
     return sendJson(res, 200, { authenticated: false });
@@ -229,22 +225,6 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.log(`\n[!] Server is already running on http://localhost:${PORT}`);
-    console.log(`[!] Opening browser to active session...\n`);
-    try {
-      const { exec } = require('child_process');
-      const url = `http://localhost:${PORT}`;
-      const startCmd = process.platform === 'win32' ? `start "" "${url}"` :
-                       process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
-      exec(startCmd);
-    } catch (e) {}
-  } else {
-    console.error('Server error:', err);
-  }
-});
-
 server.listen(PORT, () => {
   console.log(`=======================================================`);
   console.log(`🥥 Pollachi Coconut Information System (Node.js Server)`);
@@ -252,15 +232,6 @@ server.listen(PORT, () => {
   console.log(`Server running at : http://localhost:${PORT}`);
   console.log(`Student Login     : User ID: student | Password: student123`);
   console.log(`Dynamic Dataset   : data/pollachi_datasets.json`);
-  console.log(`Press Ctrl+C in this terminal to stop the server.`);
+  console.log(`Press Ctrl+C to stop the server.`);
   console.log(`=======================================================`);
-
-  // Automatically launch the default browser
-  try {
-    const { exec } = require('child_process');
-    const url = `http://localhost:${PORT}`;
-    const startCmd = process.platform === 'win32' ? `start "" "${url}"` :
-                     process.platform === 'darwin' ? `open "${url}"` : `xdg-open "${url}"`;
-    exec(startCmd);
-  } catch (e) {}
 });

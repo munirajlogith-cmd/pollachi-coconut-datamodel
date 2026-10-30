@@ -47,28 +47,13 @@ Open your browser and navigate to:
 
 ---
 
-## 🔑 Authentication & Role-Based Access Control (RBAC)
+## 🔑 Access Credentials
 
-The portal implements role-based authentication and authorization mechanisms satisfying academic evaluation guidelines:
+The portal features secure student authentication:
 
-| Role | Username | Password | Role Permissions & Privileges |
+| Role | User ID / Student ID | Password | Access Privileges |
 | :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` | **Full Read & Write Access**: Edit annual records, append future forecast years (e.g. 2026), delete rows, save changes to disk/localStorage, and trigger defaults reset. |
-| **Student** | `student` | `student123` | **Read-Only Analytics**: Explore all 7 analytical views, filter custom From/To year ranges, inspect KPI cards, and export reports (CSV/Excel/PDF). |
-| **Faculty Evaluator** | `faculty` | `faculty123` | **Evaluation Access**: Inspect interactive data visualizations, review Power BI integration workspace, verify audit logs, and download raw datasets. |
-
----
-
-## 📊 Microsoft Power BI Dashboard Integration
-
-This application includes a dedicated **Microsoft Power BI Analytics** module integrating the 21-year Pollachi Coconut Dataset (`data/pollachi_datasets.csv`):
-
-1. **Integrated Power BI Tab:** Accessible directly from the sidebar navigation (`Power BI Dashboard`).
-2. **Visual Analytics Workspace:** Embedded KPI cards and DAX measures:
-   - **Production Growth (CAGR):** `DIVIDE(MAX('Data'[Production_Cr]) - MIN('Data'[Production_Cr]), MIN('Data'[Production_Cr]))`
-   - **Mandi Price Realization:** `AVERAGE('Data'[Copra_Price_Qtl])`
-   - **Water Conservation Index:** `SUM('Data'[Area_Ha]) * AVERAGE('Data'[Drip_Pct]) * 0.45`
-3. **Dataset Ingestion:** Direct one-click download of `pollachi_datasets.csv` formatted for direct import into Power BI Desktop (`Get Data -> Text/CSV`).
+| **Student** | `student` | `student123` | Full Dashboard Access, Interactive Charts, Record Management, Multi-Format Exports |
 
 ---
 

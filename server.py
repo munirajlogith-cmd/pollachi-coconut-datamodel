@@ -106,26 +106,11 @@ class DynamicHandler(http.server.SimpleHTTPRequestHandler):
         self.send_json(404, {"success": False, "message": "Endpoint not found"})
 
 if __name__ == '__main__':
-    import webbrowser
     os.chdir(BASE_DIR)
     socketserver.TCPServer.allow_reuse_address = True
-    try:
-        with socketserver.TCPServer(("", PORT), DynamicHandler) as httpd:
-            print(f"=======================================================")
-            print(f"🥥 Pollachi Coconut Information System (Python Server)")
-            print(f"=======================================================")
-            print(f"Server running at : http://localhost:{PORT}")
-            print(f"Student Login     : User ID: student | Password: student123")
-            print(f"Press Ctrl+C to stop the server.")
-            print(f"=======================================================")
-            try:
-                webbrowser.open(f"http://localhost:{PORT}")
-            except Exception:
-                pass
-            httpd.serve_forever()
-    except OSError as e:
-        print(f"[!] Server is already running on http://localhost:{PORT}. Opening browser...")
+    with socketserver.TCPServer(("", PORT), DynamicHandler) as httpd:
+        print(f"Pollachi Coconut Information System running on http://localhost:{PORT}")
         try:
-            webbrowser.open(f"http://localhost:{PORT}")
-        except Exception:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
             pass

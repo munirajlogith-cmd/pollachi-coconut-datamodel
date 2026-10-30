@@ -61,8 +61,3 @@ const POLLACHI_STATIC_DATA = {
     { label: "Virgin Coconut Oil (VCO) & Neera",        value: 8,  color: "#065f46" }
   ]
 };
-
-if (typeof window !== 'undefined') {
-  window.POLLACHI_STATIC_DATA = POLLACHI_STATIC_DATA;
-  window.POLLACHI_COCONUT_DATA = POLLACHI_STATIC_DATA;
-}

@@ -30,8 +30,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const themeToggleBtn = document.getElementById("themeToggle");
   const yearSlider = document.getElementById("yearSlider");
   const yearDisplay = document.getElementById("yearDisplay");
-  const fromYearSelect = document.getElementById("fromYearSelect");
-  const toYearSelect = document.getElementById("toYearSelect");
   const navLinks = document.querySelectorAll(".nav-link");
   const tabPanes = document.querySelectorAll(".tab-pane");
   const topbarTitle = document.getElementById("topbarTitle");
@@ -83,22 +81,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function updateUserUI() {
     if (!state.currentUser) return;
-    const role = state.currentUser.role || 'student';
-    const roleIcon = role === 'admin' ? '👑' : (role === 'faculty' ? '👨‍🏫' : '🎓');
-    const roleLabel = role === 'admin' ? 'Administrator' : (role === 'faculty' ? 'Faculty' : 'Student');
-    userProfileBadge.innerHTML = `<span>${roleIcon}</span> ${roleLabel}`;
-
-    // Role-Based Authorization enforcement
-    if (editDatasetBtn) {
-      if (role === 'admin') {
-        editDatasetBtn.style.display = 'inline-flex';
-        editDatasetBtn.title = 'Manage annual records (Admin)';
-      } else {
-        // Students and evaluators can view records, but edit button informs them of permissions
-        editDatasetBtn.style.display = 'inline-flex';
-        editDatasetBtn.title = `Logged in as ${roleLabel} (Read-only)`;
-      }
-    }
+    userProfileBadge.innerHTML = `<span>👤</span> Student`;
   }
 
   if (loginForm) {
@@ -138,114 +121,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   // DYNAMIC DATASET MANAGEMENT & 2005-2025 RANGE
   // ==========================================
 
-  // Populate From/To year selectors from dataset years
-  function populateYearSelectors() {
-    const years = getYearlyArray().map(d => d.year || d.Year).sort((a, b) => a - b);
-    if (!years.length) return;
-
-    const minYear = years[0];
-    const maxYear = years[years.length - 1];
-
-    // Preserve current selections if valid, otherwise use min/max
-    const prevStart = state.startYear;
-    const prevEnd = state.endYear;
-
-    if (fromYearSelect) {
-      fromYearSelect.innerHTML = "";
-      years.forEach(y => {
-        const opt = document.createElement("option");
-        opt.value = y;
-        opt.textContent = y;
-        fromYearSelect.appendChild(opt);
-      });
-      // Restore previous selection if still valid
-      if (years.includes(prevStart)) {
-        fromYearSelect.value = prevStart;
-      } else {
-        fromYearSelect.value = minYear;
-        state.startYear = minYear;
-      }
-    }
-
-    if (toYearSelect) {
-      toYearSelect.innerHTML = "";
-      years.forEach(y => {
-        const opt = document.createElement("option");
-        opt.value = y;
-        opt.textContent = y;
-        toYearSelect.appendChild(opt);
-      });
-      // Restore previous selection if still valid; if state.endYear is max, keep it at the latest year
-      if (prevEnd === years[years.length - 2] || !years.includes(prevEnd)) {
-        toYearSelect.value = maxYear;
-        state.endYear = maxYear;
-      } else if (years.includes(prevEnd)) {
-        toYearSelect.value = prevEnd;
-      } else {
-        toYearSelect.value = maxYear;
-        state.endYear = maxYear;
-      }
-    }
-
-    // Also update the old slider if it exists
-    if (yearSlider) {
-      yearSlider.min = minYear;
-      yearSlider.max = maxYear;
-      yearSlider.value = state.endYear;
-      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
-    }
-  }
-
-  // From Year selector change
-  if (fromYearSelect) {
-    fromYearSelect.addEventListener("change", () => {
-      const newStart = parseInt(fromYearSelect.value, 10);
-      // Don't allow From > To
-      if (newStart > state.endYear) {
-        state.endYear = newStart;
-        if (toYearSelect) toYearSelect.value = newStart;
-      }
-      state.startYear = newStart;
-      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
-      renderAllTabs();
-      renderCurrentTab();
-    });
-  }
-
-  // To Year selector change
-  if (toYearSelect) {
-    toYearSelect.addEventListener("change", () => {
-      const newEnd = parseInt(toYearSelect.value, 10);
-      // Don't allow To < From
-      if (newEnd < state.startYear) {
-        state.startYear = newEnd;
-        if (fromYearSelect) fromYearSelect.value = newEnd;
-      }
-      state.endYear = newEnd;
-      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
-      renderAllTabs();
-      renderCurrentTab();
-    });
-  }
-
   async function loadDynamicData() {
     try {
       const data = await API.getDataset();
       if (data) {
         state.dataset = data;
-        const years = getYearlyArray().map(d => d.year || d.Year).sort((a, b) => a - b);
-        const maxYear = years.length ? years[years.length - 1] : 2025;
-        const minYear = years.length ? years[0] : 2005;
+        const years = getYearlyArray().map(d => d.year || d.Year);
+        const maxYear = Math.max(...years, 2025);
+        const minYear = 2005;
 
-        // On first load, set full range
-        if (!state._initialized) {
-          state.startYear = minYear;
-          state.endYear = maxYear;
-          state._initialized = true;
+        state.startYear = minYear;
+        if (yearSlider) {
+          yearSlider.min = minYear;
+          yearSlider.max = maxYear;
+          if (state.endYear > maxYear || state.endYear < minYear) {
+            state.endYear = maxYear;
+          }
+          yearSlider.value = state.endYear;
+          yearDisplay.textContent = `${minYear} - ${state.endYear}`;
         }
-
-        // Populate From/To selectors with all years (including newly added ones)
-        populateYearSelectors();
 
         renderAllTabs();
         renderCurrentTab();
@@ -285,17 +179,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (reloadDiskBtn) {
     reloadDiskBtn.addEventListener("click", async () => {
       reloadDiskBtn.innerHTML = "⏳ Syncing...";
-      if (confirm("Reset all records back to original defaults (2005-2025)?")) {
-        localStorage.removeItem('pollachi_custom_dataset');
-        state._initialized = false;
-        await loadDynamicData();
-        showToast("✓ Records reset to defaults.");
-      } else {
-        await loadDynamicData();
-        showToast("✓ Records reloaded.");
-      }
+      await loadDynamicData();
       setTimeout(() => {
         reloadDiskBtn.innerHTML = "🔄 Refresh Records";
+        showToast("✓ Records reloaded from file.");
       }, 300);
     });
   }
@@ -347,14 +234,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (editDatasetBtn) editDatasetBtn.addEventListener("click", openEditor);
-  if (closeEditorBtn) closeEditorBtn.addEventListener("click", async () => {
-    closeEditor();
-    await loadDynamicData();
-  });
-  if (cancelEditorBtn) cancelEditorBtn.addEventListener("click", async () => {
-    closeEditor();
-    await loadDynamicData();
-  });
+  if (closeEditorBtn) closeEditorBtn.addEventListener("click", closeEditor);
+  if (cancelEditorBtn) cancelEditorBtn.addEventListener("click", closeEditor);
 
   // Add a new blank/estimated year row
   if (addNewYearBtn) {
@@ -405,14 +286,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (saveEditorBtn) {
     saveEditorBtn.addEventListener("click", async () => {
-      // Authorization Check
-      const role = (state.currentUser && state.currentUser.role) || 'student';
-      if (role !== 'admin') {
-        showToast("⚠️ Permission Denied: Only Administrator accounts can save edits.");
-        alert("Authorization Notice:\nYou are currently signed in as " + (state.currentUser ? state.currentUser.name : "Student") + " (Read-only).\n\nPlease sign in with Administrator credentials (admin / admin123) to modify and save dataset records.");
-        return;
-      }
-
       saveEditorBtn.textContent = "Saving…";
       const list = getYearlyArray();
 
@@ -427,23 +300,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      // Expand state.endYear if a new year was added
-      const years = list.map(d => Number(d.year || d.Year)).sort((a, b) => a - b);
-      const newMax = years.length ? years[years.length - 1] : state.endYear;
-      if (newMax > state.endYear) {
-        state.endYear = newMax;
-      }
-
       await API.updateDataset(state.dataset);
       saveEditorBtn.textContent = "💾 Save All Changes";
       closeEditor();
-
-      // Update selectors and re-render charts immediately
-      populateYearSelectors();
-      renderAllTabs();
-      renderCurrentTab();
-
-      showToast("✓ All records saved — charts & time range updated.");
+      await loadDynamicData();
+      showToast("✓ All records saved and charts updated.");
     });
   }
 
@@ -593,10 +454,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     table: {
       title: "Statistical Data Records",
       subtitle: "Comprehensive tabular records with multi-format download capabilities"
-    },
-    powerbi: {
-      title: "Microsoft Power BI Embedded Analytics",
-      subtitle: "Enterprise business intelligence dashboard synchronized with Pollachi Coconut Dataset"
     }
   };
 
