@@ -160,8 +160,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         opt.textContent = y;
         toYearSelect.appendChild(opt);
       });
-      // Restore previous selection if still valid
-      if (years.includes(prevEnd)) {
+      // Restore previous selection if still valid; if state.endYear is max, keep it at the latest year
+      if (prevEnd === years[years.length - 2] || !years.includes(prevEnd)) {
+        toYearSelect.value = maxYear;
+        state.endYear = maxYear;
+      } else if (years.includes(prevEnd)) {
         toYearSelect.value = prevEnd;
       } else {
         toYearSelect.value = maxYear;
@@ -267,10 +270,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (reloadDiskBtn) {
     reloadDiskBtn.addEventListener("click", async () => {
       reloadDiskBtn.innerHTML = "⏳ Syncing...";
-      await loadDynamicData();
+      if (confirm("Reset all records back to original defaults (2005-2025)?")) {
+        localStorage.removeItem('pollachi_custom_dataset');
+        state._initialized = false;
+        await loadDynamicData();
+        showToast("✓ Records reset to defaults.");
+      } else {
+        await loadDynamicData();
+        showToast("✓ Records reloaded.");
+      }
       setTimeout(() => {
         reloadDiskBtn.innerHTML = "🔄 Refresh Records";
-        showToast("✓ Records reloaded from file.");
       }, 300);
     });
   }
@@ -322,8 +332,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (editDatasetBtn) editDatasetBtn.addEventListener("click", openEditor);
-  if (closeEditorBtn) closeEditorBtn.addEventListener("click", closeEditor);
-  if (cancelEditorBtn) cancelEditorBtn.addEventListener("click", closeEditor);
+  if (closeEditorBtn) closeEditorBtn.addEventListener("click", async () => {
+    closeEditor();
+    await loadDynamicData();
+  });
+  if (cancelEditorBtn) cancelEditorBtn.addEventListener("click", async () => {
+    closeEditor();
+    await loadDynamicData();
+  });
 
   // Add a new blank/estimated year row
   if (addNewYearBtn) {
@@ -388,19 +404,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       });
 
-      await API.updateDataset(state.dataset);
-      saveEditorBtn.textContent = "💾 Save All Changes";
-      closeEditor();
-
-      // Re-load data → updates From/To selectors (adds new years) → re-renders all charts
-      // Expand endYear to include any newly added years
-      const years = list.map(d => d.year || d.Year).sort((a, b) => a - b);
+      // Expand state.endYear if a new year was added
+      const years = list.map(d => Number(d.year || d.Year)).sort((a, b) => a - b);
       const newMax = years.length ? years[years.length - 1] : state.endYear;
       if (newMax > state.endYear) {
         state.endYear = newMax;
       }
 
-      await loadDynamicData();
+      await API.updateDataset(state.dataset);
+      saveEditorBtn.textContent = "💾 Save All Changes";
+      closeEditor();
+
+      // Update selectors and re-render charts immediately
+      populateYearSelectors();
+      renderAllTabs();
+      renderCurrentTab();
+
       showToast("✓ All records saved — charts & time range updated.");
     });
   }

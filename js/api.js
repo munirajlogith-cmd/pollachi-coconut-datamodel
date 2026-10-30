@@ -63,6 +63,17 @@ const API = (function() {
 
   // Fetch Dataset
   async function getDataset() {
+    // 1. Check if client has custom saved edits in localStorage first (persists across sessions & on GitHub Pages)
+    const localSaved = localStorage.getItem('pollachi_custom_dataset');
+    if (localSaved) {
+      try {
+        const parsed = JSON.parse(localSaved);
+        if (parsed) return parsed;
+      } catch (e) {
+        console.warn("Could not parse saved local dataset", e);
+      }
+    }
+
     try {
       const res = await fetch(`${BASE_URL}/api/coconut/data?_t=${Date.now()}`);
       if (!res.ok) throw new Error("Status " + res.status);
@@ -85,6 +96,13 @@ const API = (function() {
 
   // Update Dataset
   async function updateDataset(updatedData) {
+    // Always store immediately in localStorage for client persistence
+    try {
+      localStorage.setItem('pollachi_custom_dataset', JSON.stringify(updatedData));
+    } catch (e) {
+      console.warn("localStorage write failed:", e);
+    }
+
     try {
       const res = await fetch(`${BASE_URL}/api/coconut/update`, {
         method: 'POST',
@@ -96,8 +114,7 @@ const API = (function() {
       });
       return await res.json();
     } catch (err) {
-      localStorage.setItem('pollachi_custom_dataset', JSON.stringify(updatedData));
-      return { success: true, message: 'Records updated successfully.' };
+      return { success: true, message: 'Records updated and saved locally.' };
     }
   }
 
