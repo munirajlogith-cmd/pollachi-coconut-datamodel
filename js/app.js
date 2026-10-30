@@ -32,10 +32,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const yearDisplay = document.getElementById("yearDisplay");
   const fromYearSelect = document.getElementById("fromYearSelect");
   const toYearSelect = document.getElementById("toYearSelect");
-  const sidebarToggleBtn = document.getElementById("sidebarToggleBtn");
-  const sidebarCloseBtn = document.getElementById("sidebarCloseBtn");
-  const sidebarEl = document.querySelector(".sidebar");
-  const mainWrapperEl = document.querySelector(".main-wrapper");
   const navLinks = document.querySelectorAll(".nav-link");
   const tabPanes = document.querySelectorAll(".tab-pane");
   const topbarTitle = document.getElementById("topbarTitle");
@@ -127,48 +123,111 @@ document.addEventListener("DOMContentLoaded", async () => {
   // DYNAMIC DATASET MANAGEMENT & 2005-2025 RANGE
   // ==========================================
 
+  // Populate From/To year selectors from dataset years
+  function populateYearSelectors() {
+    const years = getYearlyArray().map(d => d.year || d.Year).sort((a, b) => a - b);
+    if (!years.length) return;
+
+    const minYear = years[0];
+    const maxYear = years[years.length - 1];
+
+    // Preserve current selections if valid, otherwise use min/max
+    const prevStart = state.startYear;
+    const prevEnd = state.endYear;
+
+    if (fromYearSelect) {
+      fromYearSelect.innerHTML = "";
+      years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        fromYearSelect.appendChild(opt);
+      });
+      // Restore previous selection if still valid
+      if (years.includes(prevStart)) {
+        fromYearSelect.value = prevStart;
+      } else {
+        fromYearSelect.value = minYear;
+        state.startYear = minYear;
+      }
+    }
+
+    if (toYearSelect) {
+      toYearSelect.innerHTML = "";
+      years.forEach(y => {
+        const opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = y;
+        toYearSelect.appendChild(opt);
+      });
+      // Restore previous selection if still valid
+      if (years.includes(prevEnd)) {
+        toYearSelect.value = prevEnd;
+      } else {
+        toYearSelect.value = maxYear;
+        state.endYear = maxYear;
+      }
+    }
+
+    // Also update the old slider if it exists
+    if (yearSlider) {
+      yearSlider.min = minYear;
+      yearSlider.max = maxYear;
+      yearSlider.value = state.endYear;
+      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
+    }
+  }
+
+  // From Year selector change
+  if (fromYearSelect) {
+    fromYearSelect.addEventListener("change", () => {
+      const newStart = parseInt(fromYearSelect.value, 10);
+      // Don't allow From > To
+      if (newStart > state.endYear) {
+        state.endYear = newStart;
+        if (toYearSelect) toYearSelect.value = newStart;
+      }
+      state.startYear = newStart;
+      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
+      renderAllTabs();
+      renderCurrentTab();
+    });
+  }
+
+  // To Year selector change
+  if (toYearSelect) {
+    toYearSelect.addEventListener("change", () => {
+      const newEnd = parseInt(toYearSelect.value, 10);
+      // Don't allow To < From
+      if (newEnd < state.startYear) {
+        state.startYear = newEnd;
+        if (fromYearSelect) fromYearSelect.value = newEnd;
+      }
+      state.endYear = newEnd;
+      if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
+      renderAllTabs();
+      renderCurrentTab();
+    });
+  }
+
   async function loadDynamicData() {
     try {
       const data = await API.getDataset();
       if (data) {
         state.dataset = data;
-        const years = getYearlyArray().map(d => d.year || d.Year).sort((a,b)=>a-b);
-        const maxYear = years.length ? Math.max(...years) : 2025;
-        const minYear = years.length ? Math.min(...years) : 2005;
+        const years = getYearlyArray().map(d => d.year || d.Year).sort((a, b) => a - b);
+        const maxYear = years.length ? years[years.length - 1] : 2025;
+        const minYear = years.length ? years[0] : 2005;
 
-        // Populate FROM and TO Selectors
-        if (fromYearSelect && toYearSelect) {
-          const currentFrom = state.startYear || minYear;
-          const currentTo = state.endYear || maxYear;
-
-          fromYearSelect.innerHTML = "";
-          toYearSelect.innerHTML = "";
-
-          years.forEach(yr => {
-            const optFrom = document.createElement("option");
-            optFrom.value = yr;
-            optFrom.textContent = yr;
-            fromYearSelect.appendChild(optFrom);
-
-            const optTo = document.createElement("option");
-            optTo.value = yr;
-            optTo.textContent = yr;
-            toYearSelect.appendChild(optTo);
-          });
-
-          fromYearSelect.value = Math.max(minYear, Math.min(currentFrom, maxYear));
-          toYearSelect.value = Math.max(minYear, Math.min(currentTo, maxYear));
-
-          state.startYear = parseInt(fromYearSelect.value, 10);
-          state.endYear = parseInt(toYearSelect.value, 10);
-        } else {
+        // On first load, set full range
+        if (!state._initialized) {
           state.startYear = minYear;
           state.endYear = maxYear;
+          state._initialized = true;
         }
 
-        if (yearDisplay) {
-          yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
-        }
+        // Populate From/To selectors with all years (including newly added ones)
+        populateYearSelectors();
 
         renderAllTabs();
         renderCurrentTab();
@@ -332,8 +391,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       await API.updateDataset(state.dataset);
       saveEditorBtn.textContent = "💾 Save All Changes";
       closeEditor();
+
+      // Re-load data → updates From/To selectors (adds new years) → re-renders all charts
+      // Expand endYear to include any newly added years
+      const years = list.map(d => d.year || d.Year).sort((a, b) => a - b);
+      const newMax = years.length ? years[years.length - 1] : state.endYear;
+      if (newMax > state.endYear) {
+        state.endYear = newMax;
+      }
+
       await loadDynamicData();
-      showToast("✓ All records saved and charts updated.");
+      showToast("✓ All records saved — charts & time range updated.");
     });
   }
 
@@ -519,78 +587,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       switchTab(l.getAttribute("data-tab"));
     });
   });
-
-  function updateYearRange(fromYr, toYr) {
-    const list = getYearlyArray().map(d => d.year || d.Year).sort((a,b)=>a-b);
-    const minYr = list[0] || 2005;
-    const maxYr = list[list.length - 1] || 2025;
-
-    let from = parseInt(fromYr, 10);
-    let to = parseInt(toYr, 10);
-
-    if (isNaN(from)) from = minYr;
-    if (isNaN(to)) to = maxYr;
-
-    if (from > to) {
-      to = from;
-    }
-
-    state.startYear = from;
-    state.endYear = to;
-
-    if (fromYearSelect) fromYearSelect.value = state.startYear;
-    if (toYearSelect) toYearSelect.value = state.endYear;
-    if (yearDisplay) yearDisplay.textContent = `${state.startYear} - ${state.endYear}`;
-
-    renderAllTabs();
-    renderCurrentTab();
-  }
-
-  if (fromYearSelect) {
-    fromYearSelect.addEventListener("change", e => {
-      updateYearRange(e.target.value, state.endYear);
-    });
-  }
-
-  if (toYearSelect) {
-    toYearSelect.addEventListener("change", e => {
-      updateYearRange(state.startYear, e.target.value);
-    });
-  }
-
-  // Sidebar Toggle (Desktop collapse & Mobile slide)
-  function toggleSidebar() {
-    if (!sidebarEl) return;
-    const isMobile = window.innerWidth <= 768;
-    if (isMobile) {
-      sidebarEl.classList.toggle("open");
-    } else {
-      sidebarEl.classList.toggle("collapsed");
-      if (mainWrapperEl) mainWrapperEl.classList.toggle("expanded");
-    }
-    setTimeout(() => {
-      renderAllTabs();
-      renderCurrentTab();
-    }, 280);
-  }
-
-  if (sidebarToggleBtn) {
-    sidebarToggleBtn.addEventListener("click", toggleSidebar);
-  }
-
-  if (sidebarCloseBtn) {
-    sidebarCloseBtn.addEventListener("click", () => {
-      if (sidebarEl) {
-        sidebarEl.classList.remove("open");
-        sidebarEl.classList.add("collapsed");
-      }
-      if (mainWrapperEl) mainWrapperEl.classList.add("expanded");
-      setTimeout(() => {
-        renderAllTabs();
-        renderCurrentTab();
-      }, 280);
-    });
-  }
 
   if (yearSlider) {
     yearSlider.addEventListener("input", e => {
