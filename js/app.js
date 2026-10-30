@@ -83,7 +83,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function updateUserUI() {
     if (!state.currentUser) return;
-    userProfileBadge.innerHTML = `<span>👤</span> Student`;
+    const role = state.currentUser.role || 'student';
+    const roleIcon = role === 'admin' ? '👑' : (role === 'faculty' ? '👨‍🏫' : '🎓');
+    const roleLabel = role === 'admin' ? 'Administrator' : (role === 'faculty' ? 'Faculty' : 'Student');
+    userProfileBadge.innerHTML = `<span>${roleIcon}</span> ${roleLabel}`;
+
+    // Role-Based Authorization enforcement
+    if (editDatasetBtn) {
+      if (role === 'admin') {
+        editDatasetBtn.style.display = 'inline-flex';
+        editDatasetBtn.title = 'Manage annual records (Admin)';
+      } else {
+        // Students and evaluators can view records, but edit button informs them of permissions
+        editDatasetBtn.style.display = 'inline-flex';
+        editDatasetBtn.title = `Logged in as ${roleLabel} (Read-only)`;
+      }
+    }
   }
 
   if (loginForm) {
@@ -390,6 +405,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (saveEditorBtn) {
     saveEditorBtn.addEventListener("click", async () => {
+      // Authorization Check
+      const role = (state.currentUser && state.currentUser.role) || 'student';
+      if (role !== 'admin') {
+        showToast("⚠️ Permission Denied: Only Administrator accounts can save edits.");
+        alert("Authorization Notice:\nYou are currently signed in as " + (state.currentUser ? state.currentUser.name : "Student") + " (Read-only).\n\nPlease sign in with Administrator credentials (admin / admin123) to modify and save dataset records.");
+        return;
+      }
+
       saveEditorBtn.textContent = "Saving…";
       const list = getYearlyArray();
 
@@ -570,6 +593,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     table: {
       title: "Statistical Data Records",
       subtitle: "Comprehensive tabular records with multi-format download capabilities"
+    },
+    powerbi: {
+      title: "Microsoft Power BI Embedded Analytics",
+      subtitle: "Enterprise business intelligence dashboard synchronized with Pollachi Coconut Dataset"
     }
   };
 

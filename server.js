@@ -17,14 +17,17 @@ const PORT = process.env.PORT || 5000;
 const DATA_FILE = path.join(__dirname, 'data', 'pollachi_datasets.json');
 const CSV_FILE = path.join(__dirname, 'data', 'pollachi_datasets.csv');
 
-// Authorized Credentials (Student Access)
+// Authorized Credentials with Role-Based Access Control (RBAC)
 const VALID_USERS = [
-  { username: 'student', password: 'student123', name: 'Student', role: 'student' },
-  { username: 'admin', password: 'admin123', name: 'Student', role: 'student' },
-  { username: 'user', password: 'user123', name: 'Student', role: 'student' }
+  { username: 'admin', password: 'admin123', name: 'Administrator', role: 'admin' },
+  { username: 'student', password: 'student123', name: 'Student Researcher', role: 'student' },
+  { username: 'faculty', password: 'faculty123', name: 'Faculty Evaluator', role: 'faculty' }
 ];
 
-const activeSessions = new Set(['session-student-token']);
+const activeSessions = new Map([
+  ['session-admin-token', { username: 'admin', name: 'Administrator', role: 'admin' }],
+  ['session-student-token', { username: 'student', name: 'Student Researcher', role: 'student' }]
+]);
 
 const MIME_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -87,7 +90,7 @@ const server = http.createServer(async (req, res) => {
 
     if (user) {
       const token = `token-${user.role}-${Date.now()}`;
-      activeSessions.add(token);
+      activeSessions.set(token, { username: user.username, name: user.name, role: user.role });
       return sendJson(res, 200, {
         success: true,
         message: 'Authentication successful',
@@ -110,12 +113,13 @@ const server = http.createServer(async (req, res) => {
   if (pathname === '/api/auth/status' && method === 'GET') {
     const authHeader = req.headers['authorization'] || '';
     const token = authHeader.replace('Bearer ', '');
-    if (activeSessions.has(token) || token.startsWith('token-')) {
+    const session = activeSessions.get(token);
+    if (session) {
       return sendJson(res, 200, {
         authenticated: true,
-        role: 'student',
-        username: 'student',
-        name: 'Student'
+        role: session.role,
+        username: session.username,
+        name: session.name
       });
     }
     return sendJson(res, 200, { authenticated: false });
